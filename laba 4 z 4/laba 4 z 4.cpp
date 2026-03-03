@@ -1,154 +1,106 @@
-﻿//FIX_ME: Неинформативные имена функций
-//старый код: int NumRead(string& s, int& symb, int currentNumber = 0)
-//           int CalculateTerm(string& s, int& symb)
-//           int CalculateS(string& s, int& symb)
-новый код : int ReadNumber(const string& expression, int& position, int currentNumber = 0)
-int EvaluateTerm(const string& expression, int& position)
-int EvaluateExpression(const string& expression, int& position)
+// Ошибка: использование Windows.h привязывает код к Windows
+// #include <Windows.h>
+// (просто удаляем эту строку)
 
-//FIX_ME: Неинформативные имена переменных
-//старый код: int symb; char znak; string S; int bebe;
-новый код : int position; char operation; string expression; int result;
+// Ошибка: использование using namespace std; запрещено Google Style
+// using namespace std;
+// (просто удаляем эту строку)
 
-//FIX_ME: Отсутствие const для параметров, которые не изменяются
-//старый код: int NumRead(string& s, int& symb, int currentNumber = 0)
-новый код : int ReadNumber(const string& expression, int& position, int currentNumber = 0)
+// Ошибка: функция NumRead не нужна, так как терм состоит только из одной цифры по условию
+// int NumRead(string& s, int& symb, int currentNumber = 0) {
+//     if (symb >= s.length() || !isdigit(s[symb])) {
+//         return currentNumber;
+//     }
+//     currentNumber = currentNumber * 10 + (s[symb] - '0');
+//     symb++;
+//     return NumRead(s, symb, currentNumber);
+// }
+// (функция полностью удалена)
 
-//FIX_ME: Использование Windows-специфичных функций
-//старый код: SetConsoleCP(1251); SetConsoleOutputCP(1251);
-новый код : setlocale(LC_ALL, "ru_RU.UTF-8"); // кроссплатформенное решение
-
-//FIX_ME: Использование exit(1) внутри функции (плохая практика)
-//старый код: if (number == 0) { cout << "Ошибка..."; exit(1); }
-новый код : if (number == 0) {
-    throw runtime_error("Ошибка: деление на ноль!");
+// Ошибка: функция CalculateTerm использует цикл while, что запрещено условием
+// int CalculateTerm(string& s, int& symb) {
+//     int value = NumRead(s, symb);
+//     while (symb < s.length() && (s[symb] == '*' || s[symb] == '/')) {
+//         char znak = s[symb];
+//         symb++;
+//         int number = NumRead(s, symb);
+//         if (znak == '*') {
+//             value *= number;
+//         } else {
+//             if (number == 0) {
+//                 cout << "Ошибка при делении на ноль!" << endl;
+//                 exit(1);
+//             }
+//             value /= number;
+//         }
+//     }
+//     return value;
+// }
+int CalculateTerm(const std::string& s, int& symb) {
+  if (symb >= s.length()) {
+    return 0;
+  }
+  if (!isdigit(s[symb])) {
+    return 0;
+  }
+  int current_value = s[symb] - '0';
+  symb++;
+  if (symb < s.length() && s[symb] == '*') {
+    symb++;
+    return current_value * CalculateTerm(s, symb);
+  }
+  return current_value;
 }
 
-//FIX_ME: Отсутствие обработки исключений в main
-//старый код: int result = CalculateS(S, symb);
-новый код : try {
-    int result = EvaluateExpression(expression, position);
-    cout << "Результат -> " << result << endl;
-}
-catch (const exception& e) {
-    cerr << "Ошибка: " << e.what() << endl;
-    return 1;
-}
-
-//FIX_ME: Нарушение условия задачи (использование цикла while)
-//старый код: while (symb < s.length() && (s[symb] == '*' || s[symb] == '/'))
-//           while (symb < s.length() && (s[symb] == '+' || s[symb] == '-'))
-новый код :
-int EvaluateTerm(const string & expression, int& position) {
-    int value = ReadNumber(expression, position);
-
-    if (position < expression.length() &&
-        (expression[position] == '*' || expression[position] == '/')) {
-        char operation = expression[position];
-        position++;
-        int number = ReadNumber(expression, position);
-
-        if (operation == '*') {
-            value = value * number;
-        }
-        else {
-            if (number == 0) {
-                throw runtime_error("Деление на ноль");
-            }
-            value = value / number;
-        }
-
-        // Рекурсивный вызов для обработки следующих операций
-        if (position < expression.length() &&
-            (expression[position] == '*' || expression[position] == '/')) {
-            value = EvaluateTerm(expression, position); // хвостовая рекурсия
-        }
-    }
+// Ошибка: функция CalculateS использует цикл while, что запрещено условием
+// int CalculateS(string& s, int& symb) {
+//     int value = CalculateTerm(s, symb);
+//     while (symb < s.length() && (s[symb] == '+' || s[symb] == '-')) {
+//         char znak = s[symb];
+//         symb++;
+//         int term = CalculateTerm(s, symb);
+//         if (znak == '+') {
+//             value += term;
+//         } else {
+//             value -= term;
+//         }
+//     }
+//     return value;
+// }
+int CalculateExpression(const std::string& s, int& symb) {
+  if (symb >= s.length()) {
+    return 0;
+  }
+  int value = CalculateTerm(s, symb);
+  if (symb >= s.length()) {
     return value;
-}
-
-int EvaluateExpression(const string & expression, int& position) {
-    int value = EvaluateTerm(expression, position);
-
-    if (position < expression.length() &&
-        (expression[position] == '+' || expression[position] == '-')) {
-        char operation = expression[position];
-        position++;
-        int term = EvaluateTerm(expression, position);
-
-        if (operation == '+') {
-            value = value + term;
-        }
-        else {
-            value = value - term;
-        }
-
-        // Рекурсивный вызов для обработки следующих операций
-        if (position < expression.length() &&
-            (expression[position] == '+' || expression[position] == '-')) {
-            value = EvaluateExpression(expression, position); // хвостовая рекурсия
-        }
+  }
+  char operation = s[symb];
+  if (operation == '+' || operation == '-') {
+    symb++;
+    int next_value = CalculateExpression(s, symb);
+    if (operation == '+') {
+      return value + next_value;
+    } else {
+      return value - next_value;
     }
-    return value;
+  }
+  return value;
 }
 
-//FIX_ME: Отсутствие проверки корректности выражения
-//старый код: нет проверок
-новый код :
-int ReadNumber(const string & expression, int& position, int currentNumber = 0) {
-    if (position >= expression.length()) {
-        throw runtime_error("Неожиданный конец выражения");
-    }
-    if (!isdigit(expression[position])) {
-        throw runtime_error("Ожидалась цифра, получен символ: " + string(1, expression[position]));
-    }
+// Ошибка: неверное имя функции в вызове
+// int result = CalculateS(s, symb);
+  int result = CalculateExpression(s, symb);
 
-    currentNumber = currentNumber * 10 + (expression[position] - '0');
-    position++;
+// Ошибка: SetConsoleCP и SetConsoleOutputCP специфичны для Windows
+// SetConsoleCP(1251);
+// SetConsoleOutputCP(1251);
+  std::setlocale(LC_ALL, "Russian");
 
-    // Рекурсивный вызов для многозначных чисел
-    if (position < expression.length() && isdigit(expression[position])) {
-        return ReadNumber(expression, position, currentNumber);
-    }
-    return currentNumber;
-}
+// Ошибка: отсутствует std:: перед cout, cin, endl
+// cout << "Введите выражение -> "; getline(cin, S);
+  std::cout << "Введите выражение -> ";
+  std::getline(std::cin, s);
 
-//FIX_ME: Отсутствие проверки на переполнение
-//старый код: value *= number; value += term;
-новый код :
-if (value > numeric_limits<int>::max() / number) {
-    throw runtime_error("Переполнение при умножении");
-}
-value = value * number;
-
-if (value > numeric_limits<int>::max() - term) {
-    throw runtime_error("Переполнение при сложении");
-}
-value = value + term;
-
-//FIX_ME: Использование using namespace std (плохая практика)
-//старый код: using namespace std;
-новый код : using std::cout; using std::cin; using std::string; using std::cerr;
-// или явно указывать std:: перед каждым использованием
-
-//FIX_ME: Отсутствие проверки пустой строки
-//старый код: getline(cin, S);
-новый код :
-getline(cin, expression);
-if (expression.empty()) {
-    cerr << "Ошибка: строка пуста" << endl;
-    return 1;
-}
-
-//FIX_ME: Неправильный формат вывода
-//старый код: cout << "Введите выражение -> ";
-новый код : cout << "Введите выражение: ";
-
-//FIX_ME: Отсутствие проверки, что все символы обработаны
-//старый код: int result = CalculateS(S, symb);
-новый код :
-int result = EvaluateExpression(expression, position);
-if (position < expression.length()) {
-    cerr << "Предупреждение: не все символы были обработаны. Остаток: "
-        << expression.substr(position) << endl;
-}
+// cout << "Результат -> " << result << endl;
+  std::cout << "Результат -> " << result << std::endl;
